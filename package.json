@@ -1,0 +1,1 @@
+{"name":"mohamed-khamis-site","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"netlify dev"},"dependencies":{"firebase-admin":"^13.5.0"},"devDependencies":{"netlify-cli":"^23.5.0"}}
