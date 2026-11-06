@@ -130,17 +130,29 @@ class MohamedKhamisApp {
     if (!container) return;
 
     const isRtl = i18n.isRTL();
-    const filtered = category === 'all' 
-      ? this.services 
-      : this.services.filter(s => s.category === category);
+    const featuredIds = ['web-development', 'android-development', 'erp-business-systems', 'lms-platforms', 'ai-solutions', 'ui-ux-design'];
+    const featuredServices = this.services.filter(s => featuredIds.includes(s.id));
+    const filtered = category === 'all'
+      ? featuredServices
+      : featuredServices.filter(s => s.category === category);
 
     container.innerHTML = filtered.map(service => {
       const title = isRtl ? service.titleAr : service.titleEn;
       const shortDesc = isRtl ? service.shortDescAr : service.shortDescEn;
 
+      const serviceImages = {
+        'web-development': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=85',
+        'android-development': 'assets/images/service-android.svg',
+        'erp-business-systems': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=85',
+        'lms-platforms': 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?auto=format&fit=crop&w=900&q=85',
+        'ai-solutions': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=900&q=85',
+        'ui-ux-design': 'https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=900&q=85'
+      };
+
       return `
         <div class="service-card" data-service-id="${service.id}">
-          <div>
+          <div class="service-cover"><img src="${serviceImages[service.id]}" alt="${title}" loading="lazy"></div>
+          <div class="service-card-content">
             <div class="service-icon-box">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
@@ -192,11 +204,20 @@ class MohamedKhamisApp {
       const title = isRtl ? project.titleAr : project.titleEn;
       const stage = isRtl ? project.stageAr : project.stageEn;
       const shortDesc = isRtl ? project.shortDescAr : project.shortDescEn;
+      const projectImages = {
+        systems: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1100&q=85',
+        web: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1100&q=85',
+        mobile: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9?auto=format&fit=crop&w=1100&q=85',
+        ai: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1100&q=85',
+        education: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?auto=format&fit=crop&w=1100&q=85',
+        design: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1100&q=85'
+      };
+      const projectImage = projectImages[project.category] || project.coverUrl;
 
       return `
         <div class="project-card" data-project-id="${project.id}">
           <div class="project-cover-wrapper">
-            <img src="${project.coverUrl}" alt="${title}" class="project-cover-img" loading="lazy">
+            <img src="${projectImage}" alt="${title}" class="project-cover-img" loading="lazy">
             <span class="project-badge ${project.badgeClass}">${stage}</span>
           </div>
           <div class="project-body">
@@ -243,8 +264,19 @@ class MohamedKhamisApp {
       { num: '08', title: i18n.t('processStep8'), desc: i18n.t('processStep8Desc') }
     ];
 
-    container.innerHTML = steps.map(s => `
+    const processImages = [
+      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=700&q=80',
+      'https://images.unsplash.com/photo-1559028006-448665bd7c7f?auto=format&fit=crop&w=700&q=80',
+      'https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=700&q=80',
+      'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=700&q=80',
+      'https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&w=700&q=80',
+      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=700&q=80',
+      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=700&q=80',
+      'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=700&q=80'
+    ];
+    container.innerHTML = steps.map((s, index) => `
       <div class="process-step-card">
+        <div class="process-step-image"><img src="${processImages[index]}" alt="${s.title}" loading="lazy"></div>
         <div class="process-step-number">${s.num}</div>
         <h3 class="process-step-title">${s.title}</h3>
         <p class="process-step-desc">${s.desc}</p>
@@ -291,8 +323,16 @@ class MohamedKhamisApp {
       {
         q: isRtl ? 'كيف يمكنني متابعة مراحل تنفيذ مشروعي؟' : 'How can I monitor the progress of my project?',
         a: isRtl 
-          ? 'نوفر تقارير متابعة دورية ورابط معاينة تجريبي مباشر (Staging Environment) لمشاهدة واختبار التطورات خطوة بخطوة قبل الإطلاق النهائي.' 
-          : 'We deliver structured milestone updates alongside a live Staging Environment, allowing you to review and test deliverables continuously.'
+          ? 'نوفر تقارير متابعة دورية ورابط معاينة تجريبي مباشر لمشاهدة التطورات ومراجعتها خطوة بخطوة قبل الإطلاق النهائي.' 
+          : 'We provide milestone updates and a preview environment so you can review progress before launch.'
+      },
+      {
+        q: isRtl ? 'هل يمكن تطوير موقعي أو نظامي الحالي؟' : 'Can you improve my existing website or system?',
+        a: isRtl ? 'نعم، يمكن مراجعة المشروع الحالي وتحديد فرص التطوير وتحسين الأداء أو إضافة خصائص جديدة دون الحاجة إلى البدء من الصفر في كل الحالات.' : 'Yes. We can review the existing product and improve performance or add features without necessarily rebuilding it.'
+      },
+      {
+        q: isRtl ? 'ما المعلومات المطلوبة لبدء العمل؟' : 'What information is needed to get started?',
+        a: isRtl ? 'يكفي في البداية شرح الفكرة والهدف والجمهور المستفيد وأهم الخصائص المطلوبة. بعد ذلك نرتب المتطلبات ونحدد نطاق التنفيذ.' : 'A short description of the idea, goals, audience, and essential features is enough to begin.'
       }
     ];
 

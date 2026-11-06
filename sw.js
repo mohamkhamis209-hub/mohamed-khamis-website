@@ -4,7 +4,7 @@
  * Explicitly ignores /admin, Netlify Functions, and external auth endpoints.
  */
 
-const CACHE_NAME = 'mk-cache-v2';
+const CACHE_NAME = 'mk-cache-v3';
 const RELATIVE_ASSETS = [
   './',
   './index.html',
@@ -28,6 +28,7 @@ const RELATIVE_ASSETS = [
   './assets/js/forms.js',
   './assets/js/pwa.js',
   './assets/images/logo-mk.svg',
+  './assets/images/service-android.svg',
   './assets/images/mohamed-khamis.jpg',
   './assets/images/project-moja.svg',
   './assets/images/project-qesma.svg',
