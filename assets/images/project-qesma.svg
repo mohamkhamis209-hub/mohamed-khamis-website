@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgQesma" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#081026" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="cyanQesma" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F2FE" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+    <linearGradient id="orangeFirebase" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFCA28" />
+      <stop offset="100%" stop-color="#F57C00" />
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#bgQesma)" />
+
+  <!-- Network Nodes & Wave lines -->
+  <g opacity="0.3" stroke="#00F2FE" stroke-width="1.5">
+    <circle cx="220" cy="225" r="80" fill="none" stroke-dasharray="4 4" />
+    <circle cx="220" cy="225" r="140" fill="none" stroke-opacity="0.5" />
+    <line x1="220" y1="225" x2="480" y2="140" />
+    <line x1="220" y1="225" x2="520" y2="240" />
+    <line x1="220" y1="225" x2="480" y2="340" />
+  </g>
+
+  <!-- Central Router / Hub Node -->
+  <circle cx="220" cy="225" r="44" fill="#0E1B38" stroke="url(#cyanQesma)" stroke-width="3" />
+  <text x="220" y="222" font-family="'Cairo', sans-serif" font-size="16" font-weight="900" fill="#00F2FE" text-anchor="middle">قسمة</text>
+  <text x="220" y="240" font-family="'Inter', sans-serif" font-size="10" font-weight="600" fill="#94A3B8" text-anchor="middle">QESMA</text>
+
+  <!-- Quota Distribution Cards -->
+  <!-- Card 1 -->
+  <g transform="translate(450, 95)">
+    <rect width="260" height="70" rx="10" fill="#0B152E" stroke="rgba(0, 242, 254, 0.4)" stroke-width="1.5" />
+    <text x="20" y="28" font-family="'Cairo', 'Inter', sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Node A — حصة 150GB</text>
+    <rect x="20" y="38" width="220" height="8" rx="4" fill="#1E293B" />
+    <rect x="20" y="38" width="160" height="8" rx="4" fill="url(#cyanQesma)" />
+    <text x="20" y="58" font-family="'Inter', sans-serif" font-size="11" fill="#94A3B8">72% Consumed • 15 Mbps Cap</text>
+  </g>
+
+  <!-- Card 2 -->
+  <g transform="translate(480, 195)">
+    <rect width="250" height="70" rx="10" fill="#0B152E" stroke="rgba(255, 202, 40, 0.4)" stroke-width="1.5" />
+    <text x="20" y="28" font-family="'Cairo', 'Inter', sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Node B — حصة 200GB</text>
+    <rect x="20" y="38" width="210" height="8" rx="4" fill="#1E293B" />
+    <rect x="20" y="38" width="85" height="8" rx="4" fill="url(#orangeFirebase)" />
+    <text x="20" y="58" font-family="'Inter', sans-serif" font-size="11" fill="#94A3B8">38% Consumed • Unlimited Burst</text>
+  </g>
+
+  <!-- Card 3 -->
+  <g transform="translate(450, 295)">
+    <rect width="260" height="70" rx="10" fill="#0B152E" stroke="rgba(0, 242, 254, 0.4)" stroke-width="1.5" />
+    <text x="20" y="28" font-family="'Cairo', 'Inter', sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">Node C — حصة 100GB</text>
+    <rect x="20" y="38" width="220" height="8" rx="4" fill="#1E293B" />
+    <rect x="20" y="38" width="195" height="8" rx="4" fill="#EF4444" />
+    <text x="20" y="58" font-family="'Inter', sans-serif" font-size="11" fill="#EF4444">88% Quota Alert • Firebase Sync</text>
+  </g>
+
+  <!-- Bottom Badge -->
+  <g transform="translate(140, 360)">
+    <rect width="160" height="30" rx="6" fill="#141E33" stroke="url(#orangeFirebase)" stroke-width="1" />
+    <text x="80" y="20" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#FFCA28" text-anchor="middle">Firebase Realtime Quota</text>
+  </g>
+</svg>

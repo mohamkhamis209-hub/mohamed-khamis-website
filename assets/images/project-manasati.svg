@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgMana" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#081024" />
+      <stop offset="100%" stop-color="#020614" />
+    </linearGradient>
+    <linearGradient id="cyanMana" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F2FE" />
+      <stop offset="100%" stop-color="#4FACFE" />
+    </linearGradient>
+    <linearGradient id="goldMana" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#bgMana)" />
+
+  <!-- LMS Dashboard Interface Concept -->
+  <g transform="translate(80, 50)">
+    <rect width="640" height="350" rx="14" fill="#0C152B" stroke="rgba(0, 242, 254, 0.35)" stroke-width="2" />
+    
+    <!-- Top Bar -->
+    <path d="M 0 0 L 640 0 A 14 14 0 0 1 640 50 L 0 50 Z" fill="#091022" />
+    <text x="25" y="32" font-family="'Cairo', sans-serif" font-size="16" font-weight="900" fill="#00F2FE">منصتك التعليمية</text>
+    <text x="615" y="32" font-family="'Inter', sans-serif" font-size="13" fill="#94A3B8" text-anchor="end">LMS Portal</text>
+
+    <!-- Side Menu / Modules -->
+    <g transform="translate(20, 70)">
+      <rect width="160" height="42" rx="8" fill="#152445" stroke="url(#cyanMana)" stroke-width="1" />
+      <text x="15" y="27" font-family="'Cairo', sans-serif" font-size="13" font-weight="700" fill="#FFFFFF">الدورات والمحاضرات</text>
+
+      <rect y="55" width="160" height="42" rx="8" fill="#0E1933" />
+      <text x="15" y="82" font-family="'Cairo', sans-serif" font-size="13" fill="#94A3B8">بنوك الاختبارات</text>
+
+      <rect y="110" width="160" height="42" rx="8" fill="#0E1933" />
+      <text x="15" y="137" font-family="'Cairo', sans-serif" font-size="13" fill="#94A3B8">المكتبة الرقمية</text>
+
+      <rect y="165" width="160" height="42" rx="8" fill="#0E1933" />
+      <text x="15" y="192" font-family="'Cairo', sans-serif" font-size="13" fill="#94A3B8">تقارير الطلاب</text>
+    </g>
+
+    <!-- Main Content Area: Video & Exam cards -->
+    <!-- Video Player Simulation -->
+    <g transform="translate(200, 70)">
+      <rect width="415" height="150" rx="10" fill="#070C1B" stroke="#1E293B" stroke-width="1.5" />
+      <circle cx="207" cy="75" r="26" fill="url(#cyanMana)" opacity="0.85" />
+      <polygon points="202,64 218,75 202,86" fill="#0B132B" />
+      <text x="20" y="135" font-family="'Cairo', sans-serif" font-size="12" fill="#E2E8F0">المحاضرة 4: هياكل البيانات المتقدمة والخوارزميات</text>
+    </g>
+
+    <!-- Exam Status Widget -->
+    <g transform="translate(200, 235)">
+      <rect width="200" height="85" rx="10" fill="#0F1D3D" stroke="url(#goldMana)" stroke-width="1" />
+      <text x="15" y="25" font-family="'Cairo', sans-serif" font-size="12" font-weight="700" fill="#F59E0B">اختبار منتصف الفصل</text>
+      <text x="15" y="48" font-family="'Cairo', sans-serif" font-size="11" fill="#94A3B8">30 سؤال • مدة 45 دقيقة</text>
+      <text x="15" y="70" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#10B981">نسبة الاجتياز: 85%</text>
+    </g>
+
+    <g transform="translate(415, 235)">
+      <rect width="200" height="85" rx="10" fill="#0F1D3D" stroke="url(#cyanMana)" stroke-width="1" />
+      <text x="15" y="25" font-family="'Cairo', sans-serif" font-size="12" font-weight="700" fill="#00F2FE">الكتب والملازم الرقمية</text>
+      <text x="15" y="48" font-family="'Cairo', sans-serif" font-size="11" fill="#94A3B8">ملفات PDF قابلة للمطالعة</text>
+      <text x="15" y="70" font-family="'Inter', sans-serif" font-size="11" fill="#38BDF8">14 مستند تعليمي</text>
+    </g>
+  </g>
+</svg>

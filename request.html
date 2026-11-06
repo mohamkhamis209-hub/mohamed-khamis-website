@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>اطلب تنفيذ مشروع | MOHAMED KHAMIS</title>
+  <meta name="description" content="نموذج استقبال طلبات العملاء والمشاريع التقنية. اطلب تنفيذ موقعك، تطبيقك، أو نظامك الإداري مباشرة مع محمد خميس.">
+  <link rel="canonical" href="https://websitemohamedkhamis.netlify.app/request.html">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon-192.svg">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/responsive.css">
+  <link rel="stylesheet" href="/assets/css/animations.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="lang-ar theme-dark">
+  <div class="ambient-mesh">
+    <div class="ambient-blob ambient-blob-cyan"></div>
+    <div class="ambient-blob ambient-blob-gold"></div>
+  </div>
+
+  <header class="header-nav">
+    <div class="container nav-container">
+      <a href="/" class="brand-link">
+        <img src="/assets/images/logo-mk.svg" alt="MOHAMED KHAMIS" class="brand-logo-img">
+      </a>
+      <nav>
+        <ul class="nav-menu" id="nav-menu">
+          <li><a href="/" class="nav-link" data-i18n="navHome">الرئيسية</a></li>
+          <li><a href="/about.html" class="nav-link" data-i18n="navAbout">من أنا</a></li>
+          <li><a href="/services.html" class="nav-link" data-i18n="navServices">الخدمات</a></li>
+          <li><a href="/projects.html" class="nav-link" data-i18n="navProjects">المشاريع والأعمال</a></li>
+          <li><a href="/contact.html" class="nav-link" data-i18n="navContact">تواصل معي</a></li>
+        </ul>
+      </nav>
+      <div class="nav-actions">
+        <button class="ctrl-btn theme-toggle-btn" aria-label="Toggle Theme">
+          <span class="theme-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+          </span>
+        </button>
+        <button class="ctrl-btn lang-switch-btn" data-i18n="switchLang">English</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge" data-i18n="navRequestBtn">طلب مشروع</span>
+        <h1 class="section-title" data-i18n="requestSectionTitle">طلب تنفيذ مشروع جديد</h1>
+        <p class="section-subtitle" data-i18n="requestSectionSubtitle">
+          شاركنا تفاصيل مشروعك وسنقوم بدراستها والتواصل معك لوضع خطة التنفيذ المثالية
+        </p>
+      </div>
+
+      <div class="request-form-card">
+        <form id="project-request-form">
+          <input type="text" name="website" style="display: none;" tabindex="-1" autocomplete="off">
+
+          <div class="form-grid">
+            <div>
+              <label class="form-label" data-i18n="formClientName">اسم العميل / المؤسسة *</label>
+              <input type="text" name="clientName" class="form-control" required placeholder="مثال: أحمد عبد الله أو اسم الشركة">
+            </div>
+
+            <div>
+              <label class="form-label" data-i18n="formEmail">البريد الإلكتروني *</label>
+              <input type="email" name="email" class="form-control" required placeholder="name@example.com">
+            </div>
+
+            <div>
+              <label class="form-label" data-i18n="formPhone">رقم الهاتف / الواتساب *</label>
+              <input type="tel" name="phone" class="form-control" required placeholder="+20 100 000 0000">
+            </div>
+
+            <div>
+              <label class="form-label" data-i18n="formCountry">الدولة (اختياري)</label>
+              <input type="text" name="country" class="form-control" placeholder="مثال: مصر، السعودية، الإمارات...">
+            </div>
+
+            <div class="form-group-full">
+              <label class="form-label" data-i18n="formProjectType">نوع المشروع المطلوب *</label>
+              <input type="text" name="projectType" id="form-project-type" class="form-control" required placeholder="اختر نوع المشروع أو الخدمة">
+            </div>
+
+            <div class="form-group-full">
+              <label class="form-label" data-i18n="formDescription">وصف وتفاصيل المشروع *</label>
+              <textarea name="projectDescription" class="form-control" required placeholder="صف فكرة المشروع، المميزات المطلوبة، والهدف الأساسي منه..."></textarea>
+            </div>
+
+            <div>
+              <label class="form-label" data-i18n="formBudget">الميزانية المتوقعة (اختياري)</label>
+              <input type="text" name="budget" class="form-control" placeholder="حدد الميزانية التقريبية إن وجدت">
+            </div>
+
+            <div>
+              <label class="form-label" data-i18n="formContactMethod">طريقة التواصل المفضلة *</label>
+              <select name="contactMethod" class="form-control">
+                <option value="whatsapp">عبر واتساب (موصى به لسرعة الرد)</option>
+                <option value="phone">اتصال هاتفي مباشر</option>
+                <option value="email">رسالة عبر البريد الإلكتروني</option>
+              </select>
+            </div>
+
+            <div class="form-group-full" style="margin-top: 10px;">
+              <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;" data-i18n="formSubmitBtn">
+                إرسال طلب المشروع
+              </button>
+            </div>
+          </div>
+
+          <div id="request-form-alert" class="form-status-alert"></div>
+
+          <div id="tracking-result-box" class="tracking-box" style="display: none;">
+            <div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="formTrackingNumberLabel">رقم مرجع الطلب:</div>
+              <div id="tracking-code-val" class="tracking-code"></div>
+            </div>
+            <button type="button" id="copy-tracking-btn" class="btn btn-secondary btn-sm" data-i18n="formCopyBtn">
+              نسخ الرقم المرجعي
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer-main">
+    <div class="container footer-bottom">
+      <div data-i18n="footerRights">جميع الحقوق محفوظة © MOHAMED KHAMIS</div>
+      <div class="footer-bottom-links">
+        <a href="/privacy.html" data-i18n="footerPrivacy">سياسة الخصوصية</a>
+        <a href="/terms.html" data-i18n="footerTerms">شروط الاستخدام</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="/assets/js/app.js"></script>
+</body>
+</html>

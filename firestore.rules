@@ -1,0 +1,117 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && (
+        request.auth.uid == '6kUrmstc69T4AnwhoUJ4ZrFbRez2' ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super_admin' &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true)
+      );
+    }
+
+    function isActiveAdmin() {
+      return isAuthenticated() && (
+        isSuperAdmin() ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true)
+      );
+    }
+
+    function hasPermission(perm) {
+      return isSuperAdmin() || (
+        isActiveAdmin() &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.permissions[perm] == true
+      );
+    }
+
+    // 1. Admins Collection
+    match /admins/{adminUid} {
+      // Admin can read their own profile to verify their role & active status
+      allow read: if isAuthenticated() && (request.auth.uid == adminUid || isSuperAdmin());
+      // Only Super Admin can create, modify or delete admin privileges
+      allow write: if isSuperAdmin();
+    }
+
+    // 2. Public Settings
+    match /settings/{settingId} {
+      // Anyone can read public site settings
+      allow read: if settingId == 'public' || isActiveAdmin();
+      allow write: if hasPermission('manageSettings');
+    }
+
+    // 3. Projects Collection
+    match /projects/{projectId} {
+      // Public can read published projects, admins can read all
+      allow read: if resource.data.published == true || isActiveAdmin();
+      allow write: if hasPermission('manageProjects');
+    }
+
+    // 4. Services Collection
+    match /services/{serviceId} {
+      // Public can read published services, admins can read all
+      allow read: if resource.data.published == true || isActiveAdmin();
+      allow write: if hasPermission('manageServices');
+    }
+
+    // 5. Testimonials Collection
+    match /testimonials/{testimonialId} {
+      // Public can read verified published testimonials only
+      allow read: if resource.data.published == true || isActiveAdmin();
+      allow write: if hasPermission('manageTestimonials');
+    }
+
+    // 6. FAQs Collection
+    match /faqs/{faqId} {
+      // Public can read published FAQs
+      allow read: if resource.data.published == true || isActiveAdmin();
+      allow write: if hasPermission('manageFaqs');
+    }
+
+    // 7. Client Requests Collection
+    match /requests/{requestId} {
+      // Strictly forbidden for public. Only authenticated admins with permission can read/update.
+      // Creation is strictly performed through secured Netlify Functions via Firebase Admin SDK.
+      allow read: if hasPermission('manageRequests');
+      allow update: if hasPermission('manageRequests');
+      allow delete: if isSuperAdmin();
+      allow create: if false; // Only Admin SDK on server creates requests
+    }
+
+    // 8. Contact Messages Collection
+    match /messages/{messageId} {
+      // Strictly forbidden for public. Only authorized admins can read or archive.
+      allow read: if hasPermission('manageMessages');
+      allow update: if hasPermission('manageMessages');
+      allow delete: if isSuperAdmin();
+      allow create: if false; // Only Admin SDK on server creates messages
+    }
+
+    // 9. Audit Logs Collection
+    match /auditLogs/{logId} {
+      allow read: if isSuperAdmin();
+      allow write: if false; // Only server Admin SDK appends to audit logs
+    }
+
+    // 10. Analytics & Rate Limits
+    match /analytics/{docId} {
+      allow read: if hasPermission('viewStats');
+      allow write: if false;
+    }
+
+    match /requestRateLimits/{docId} {
+      allow read, write: if false;
+    }
+
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
