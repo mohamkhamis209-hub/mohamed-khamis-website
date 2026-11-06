@@ -4,44 +4,46 @@
  * Explicitly ignores /admin, Netlify Functions, and external auth endpoints.
  */
 
-const CACHE_NAME = 'mk-cache-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/about.html',
-  '/services.html',
-  '/projects.html',
-  '/request.html',
-  '/contact.html',
-  '/privacy.html',
-  '/terms.html',
-  '/404.html',
-  '/assets/css/style.css',
-  '/assets/css/responsive.css',
-  '/assets/css/animations.css',
-  '/assets/js/config.js',
-  '/assets/js/i18n.js',
-  '/assets/js/theme.js',
-  '/assets/js/services-data.js',
-  '/assets/js/projects-data.js',
-  '/assets/js/app.js',
-  '/assets/js/forms.js',
-  '/assets/js/pwa.js',
-  '/assets/images/logo-mk.svg',
-  '/assets/images/mohamed-khamis.jpg',
-  '/assets/images/project-moja.svg',
-  '/assets/images/project-qesma.svg',
-  '/assets/images/project-mizoma.svg',
-  '/assets/images/project-manasati.svg',
-  '/assets/images/project-zoma.svg',
-  '/assets/icons/icon-192.svg',
-  '/assets/icons/icon-512.svg'
+const CACHE_NAME = 'mk-cache-v2';
+const RELATIVE_ASSETS = [
+  './',
+  './index.html',
+  './about.html',
+  './services.html',
+  './projects.html',
+  './request.html',
+  './contact.html',
+  './privacy.html',
+  './terms.html',
+  './404.html',
+  './assets/css/style.css',
+  './assets/css/responsive.css',
+  './assets/css/animations.css',
+  './assets/js/config.js',
+  './assets/js/i18n.js',
+  './assets/js/theme.js',
+  './assets/js/services-data.js',
+  './assets/js/projects-data.js',
+  './assets/js/app.js',
+  './assets/js/forms.js',
+  './assets/js/pwa.js',
+  './assets/images/logo-mk.svg',
+  './assets/images/mohamed-khamis.jpg',
+  './assets/images/project-moja.svg',
+  './assets/images/project-qesma.svg',
+  './assets/images/project-mizoma.svg',
+  './assets/images/project-manasati.svg',
+  './assets/images/project-zoma.svg',
+  './assets/icons/icon-192.svg',
+  './assets/icons/icon-512.svg'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+      const scopeUrl = new URL(self.registration.scope);
+      const urlsToCache = RELATIVE_ASSETS.map((asset) => new URL(asset, scopeUrl).href);
+      return cache.addAll(urlsToCache);
     })
   );
   self.skipWaiting();
@@ -64,8 +66,8 @@ self.addEventListener('fetch', (event) => {
   // Security: NEVER cache /admin, Netlify Functions, or non-GET requests
   if (
     event.request.method !== 'GET' ||
-    url.pathname.startsWith('/admin') ||
-    url.pathname.startsWith('/.netlify') ||
+    url.pathname.includes('/admin') ||
+    url.pathname.includes('/.netlify') ||
     url.hostname.includes('firebaseio.com') ||
     url.hostname.includes('googleapis.com') ||
     url.hostname.includes('identitytoolkit.googleapis.com')
@@ -76,7 +78,6 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Return cached response and update cache in background (Stale-While-Revalidate)
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => {

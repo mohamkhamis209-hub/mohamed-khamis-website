@@ -2,8 +2,8 @@
   "name": "MOHAMED KHAMIS — Technology & Innovation",
   "short_name": "MOHAMED KHAMIS",
   "description": "Technology & Innovation Specialist. Transforming ideas into digital solutions.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#060B18",
   "theme_color": "#060B18",
@@ -12,13 +12,13 @@
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/assets/icons/icon-192.svg",
+      "src": "assets/icons/icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/icons/icon-512.svg",
+      "src": "assets/icons/icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
