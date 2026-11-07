@@ -1,17 +1,4 @@
-/**
- * MOHAMED KHAMIS — Official Digital Brand & Platform Configuration
- * Firebase Web Config & Global Application Constants
- */
-
-const isNetlify = typeof window !== 'undefined' && (
-  window.location.hostname.includes('netlify.app') ||
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '127.0.0.1'
-);
-
-// Fallback to Netlify production backend when accessed from GitHub Pages or custom domain
-const backendOrigin = isNetlify ? '' : 'https://websitemohamedkhamis.netlify.app';
-
+/** MOHAMED KHAMIS — Public website configuration. */
 export const APP_CONFIG = {
   brand: {
     name: 'MOHAMED KHAMIS',
@@ -27,17 +14,17 @@ export const APP_CONFIG = {
   },
   firebase: {
     apiKey: 'AIzaSyCPw4s-M_a8y_VvPfeMDWCTBFNGBXXzcjE',
-    projectId: 'mohamed-khamis',
     authDomain: 'mohamed-khamis.firebaseapp.com',
+    projectId: 'mohamed-khamis',
     storageBucket: 'mohamed-khamis.firebasestorage.app',
     messagingSenderId: '534587371999',
     appId: '1:534587371999:web:ae906a8cd8d377571a546a'
   },
-  endpoints: {
-    submitRequest: `${backendOrigin}/.netlify/functions/submit-request`,
-    submitMessage: `${backendOrigin}/.netlify/functions/submit-message`,
-    uploadImage: `${backendOrigin}/.netlify/functions/upload-image`,
-    adminApi: `${backendOrigin}/.netlify/functions/admin-api`
+  // Public browser-side ImgBB key, included at the owner's request.
+  // Anyone can view it in the downloaded website source.
+  imgbb: {
+    apiKey: '7e80b4d2c0145794b6f5951a12dfdb29',
+    uploadUrl: 'https://api.imgbb.com/1/upload'
   },
   defaults: {
     language: 'ar',

@@ -1,9 +1,6 @@
-/**
- * MOHAMED KHAMIS — Client-side Form Handling & Serverless Integration
- * Handles Project Inquiries & Contact Messages
- */
-
-import { APP_CONFIG } from './config.js';
+/** Client-side forms: write validated public submissions directly to Firestore. */
+import { collection, doc, setDoc, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { db } from './firebase-client.js';
 import { i18n } from './i18n.js';
 
 export function initForms() {
@@ -11,192 +8,117 @@ export function initForms() {
   setupContactForm();
 }
 
-/**
- * Setup Project Request Form
- */
+function makeTrackingId() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = new Uint8Array(5);
+  crypto.getRandomValues(bytes);
+  const suffix = [...bytes].map(value => alphabet[value % alphabet.length]).join('');
+  return `MK-REQ-${new Date().getFullYear()}-${suffix}`;
+}
+
 function setupProjectRequestForm() {
   const form = document.getElementById('project-request-form');
   if (!form) return;
-
   const submitBtn = form.querySelector('button[type="submit"]');
   const alertBox = document.getElementById('request-form-alert');
   const trackingContainer = document.getElementById('tracking-result-box');
   const trackingCodeEl = document.getElementById('tracking-code-val');
   const copyBtn = document.getElementById('copy-tracking-btn');
 
-  if (copyBtn && trackingCodeEl) {
-    copyBtn.addEventListener('click', () => {
-      const code = trackingCodeEl.textContent;
-      if (code) {
-        navigator.clipboard.writeText(code).then(() => {
-          const originalText = copyBtn.textContent;
-          copyBtn.textContent = i18n.t('formCopied');
-          setTimeout(() => { copyBtn.textContent = originalText; }, 2500);
-        });
-      }
+  copyBtn?.addEventListener('click', () => {
+    const code = trackingCodeEl?.textContent;
+    if (code) navigator.clipboard.writeText(code).then(() => {
+      const old = copyBtn.textContent;
+      copyBtn.textContent = i18n.t('formCopied');
+      setTimeout(() => { copyBtn.textContent = old; }, 2500);
     });
-  }
+  });
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const clientName = form.querySelector('[name="clientName"]')?.value?.trim();
-    const email = form.querySelector('[name="email"]')?.value?.trim();
-    const phone = form.querySelector('[name="phone"]')?.value?.trim();
-    const country = form.querySelector('[name="country"]')?.value?.trim() || '';
-    const projectType = form.querySelector('[name="projectType"]')?.value?.trim();
-    const projectDescription = form.querySelector('[name="projectDescription"]')?.value?.trim();
-    const budget = form.querySelector('[name="budget"]')?.value?.trim() || '';
-    const contactMethod = form.querySelector('[name="contactMethod"]')?.value || 'whatsapp';
-    const honeypot = form.querySelector('[name="website"]')?.value || '';
-
-    // Bot honeypot check
-    if (honeypot) return;
-
-    // Validation
-    if (!clientName || clientName.length < 2) {
-      showAlert(alertBox, i18n.isRTL() ? 'يرجى إدخال اسم صحيح لا يقل عن حرفين.' : 'Please enter a valid name (min 2 characters).', 'error');
-      return;
-    }
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const value = name => form.querySelector(`[name="${name}"]`)?.value?.trim() || '';
+    const clientName = value('clientName');
+    const email = value('email').toLowerCase();
+    const phone = value('phone');
+    const country = value('country');
+    const projectType = value('projectType');
+    const projectDescription = value('projectDescription');
+    const budget = value('budget');
+    const contactMethod = value('contactMethod') || 'whatsapp';
+    if (value('website')) return;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
-      showAlert(alertBox, i18n.isRTL() ? 'يرجى إدخال بريد إلكتروني صحيح.' : 'Please enter a valid email address.', 'error');
-      return;
-    }
+    if (clientName.length < 2) return showAlert(alertBox, 'يرجى إدخال اسم صحيح لا يقل عن حرفين.', 'error');
+    if (!emailRegex.test(email)) return showAlert(alertBox, 'يرجى إدخال بريد إلكتروني صحيح.', 'error');
+    if (phone.length < 7) return showAlert(alertBox, 'يرجى إدخال رقم هاتف صحيح.', 'error');
+    if (!projectType) return showAlert(alertBox, 'يرجى اختيار نوع المشروع المطلوب.', 'error');
+    if (projectDescription.length < 10) return showAlert(alertBox, 'يرجى كتابة وصف تفصيلي للمشروع (10 أحرف كحد أدنى).', 'error');
 
-    if (!phone || phone.length < 7) {
-      showAlert(alertBox, i18n.isRTL() ? 'يرجى إدخال رقم هاتف صحيح.' : 'Please enter a valid phone number.', 'error');
-      return;
-    }
-
-    if (!projectType) {
-      showAlert(alertBox, i18n.isRTL() ? 'يرجى اختيار نوع المشروع المطلوب.' : 'Please select the project category.', 'error');
-      return;
-    }
-
-    if (!projectDescription || projectDescription.length < 10) {
-      showAlert(alertBox, i18n.isRTL() ? 'يرجى كتابة وصف تفصيلي للمشروع (10 أحرف كحد أدنى).' : 'Please provide project details (min 10 characters).', 'error');
-      return;
-    }
-
-    // Set loading state
-    const originalBtnText = submitBtn.innerHTML;
+    const oldText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<span class="spinner"></span> <span>${i18n.t('formSubmitting')}</span>`;
     hideAlert(alertBox);
     if (trackingContainer) trackingContainer.style.display = 'none';
 
     try {
-      const response = await fetch(APP_CONFIG.endpoints.submitRequest, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientName,
-          email,
-          phone,
-          country,
-          projectType,
-          projectDescription,
-          budget,
-          contactMethod
-        })
+      const trackingId = makeTrackingId();
+      await setDoc(doc(db, 'requests', trackingId), {
+        trackingId, clientName, email, phone, country, projectType, projectDescription,
+        budget, contactMethod, attachmentUrl: '', status: 'new', internalNotes: '',
+        createdAt: new Date().toISOString(), createdAtServer: serverTimestamp()
       });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        form.reset();
-        showAlert(alertBox, i18n.isRTL() ? result.messageAr || i18n.t('formSuccessDesc') : result.messageEn || i18n.t('formSuccessDesc'), 'success');
-        if (trackingContainer && trackingCodeEl && result.trackingId) {
-          trackingCodeEl.textContent = result.trackingId;
-          trackingContainer.style.display = 'flex';
-        }
-      } else {
-        const errorMsg = i18n.isRTL() 
-          ? (result.errorAr || result.error || i18n.t('errorDesc')) 
-          : (result.error || i18n.t('errorDesc'));
-        showAlert(alertBox, errorMsg, 'error');
+      form.reset();
+      showAlert(alertBox, i18n.isRTL() ? 'تم استلام طلبك بنجاح، وسيتم التواصل معك قريباً.' : 'Your project request has been received successfully.', 'success');
+      if (trackingContainer && trackingCodeEl) {
+        trackingCodeEl.textContent = trackingId;
+        trackingContainer.style.display = 'flex';
       }
-    } catch (err) {
-      console.error('Request submission error:', err);
-      showAlert(alertBox, i18n.t('errorDesc'), 'error');
+    } catch (error) {
+      console.error('Request submission error:', error);
+      showAlert(alertBox, 'تعذر إرسال الطلب حالياً. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnText;
+      submitBtn.innerHTML = oldText;
     }
   });
 }
 
-/**
- * Setup Contact Form
- */
 function setupContactForm() {
   const form = document.getElementById('contact-form');
   if (!form) return;
-
   const submitBtn = form.querySelector('button[type="submit"]');
   const alertBox = document.getElementById('contact-form-alert');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const name = form.querySelector('[name="name"]')?.value?.trim();
-    const email = form.querySelector('[name="email"]')?.value?.trim();
-    const subject = form.querySelector('[name="subject"]')?.value?.trim();
-    const message = form.querySelector('[name="message"]')?.value?.trim();
-    const honeypot = form.querySelector('[name="website"]')?.value || '';
-
-    if (honeypot) return;
-
-    if (!name || name.length < 2) {
-      showAlert(alertBox, i18n.isRTL() ? 'يرجى إدخال اسم صحيح.' : 'Please enter a valid name.', 'error');
-      return;
-    }
-
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const value = name => form.querySelector(`[name="${name}"]`)?.value?.trim() || '';
+    const name = value('name');
+    const email = value('email').toLowerCase();
+    const subject = value('subject');
+    const message = value('message');
+    if (value('website')) return;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
-      showAlert(alertBox, i18n.isRTL() ? 'يرجى إدخال بريد إلكتروني صحيح.' : 'Please enter a valid email address.', 'error');
-      return;
-    }
+    if (name.length < 2) return showAlert(alertBox, 'يرجى إدخال اسم صحيح.', 'error');
+    if (!emailRegex.test(email)) return showAlert(alertBox, 'يرجى إدخال بريد إلكتروني صحيح.', 'error');
+    if (subject.length < 3 || message.length < 5) return showAlert(alertBox, 'يرجى إدخال موضوع ونص رسالة صحيحين.', 'error');
 
-    if (!subject || subject.length < 3) {
-      showAlert(alertBox, i18n.isRTL() ? 'يرجى إدخال موضوع الرسالة.' : 'Please enter a subject.', 'error');
-      return;
-    }
-
-    if (!message || message.length < 5) {
-      showAlert(alertBox, i18n.isRTL() ? 'يرجى كتابة نص الرسالة.' : 'Please enter your message.', 'error');
-      return;
-    }
-
-    const originalBtnText = submitBtn.innerHTML;
+    const oldText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<span class="spinner"></span> <span>${i18n.t('contactFormSubmitting')}</span>`;
     hideAlert(alertBox);
-
     try {
-      const response = await fetch(APP_CONFIG.endpoints.submitMessage, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, subject, message })
+      await addDoc(collection(db, 'messages'), {
+        name, email, subject, message, read: false, archived: false,
+        createdAt: new Date().toISOString(), createdAtServer: serverTimestamp()
       });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        form.reset();
-        showAlert(alertBox, i18n.isRTL() ? result.messageAr || i18n.t('contactFormSuccess') : result.messageEn || i18n.t('contactFormSuccess'), 'success');
-      } else {
-        const errorMsg = i18n.isRTL() ? (result.errorAr || result.error || i18n.t('errorDesc')) : (result.error || i18n.t('errorDesc'));
-        showAlert(alertBox, errorMsg, 'error');
-      }
-    } catch (err) {
-      console.error('Contact submission error:', err);
-      showAlert(alertBox, i18n.t('errorDesc'), 'error');
+      form.reset();
+      showAlert(alertBox, i18n.isRTL() ? 'تم إرسال رسالتك بنجاح. شكراً لتواصلك!' : 'Your message has been sent successfully. Thank you!', 'success');
+    } catch (error) {
+      console.error('Contact submission error:', error);
+      showAlert(alertBox, 'تعذر إرسال الرسالة حالياً. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnText;
+      submitBtn.innerHTML = oldText;
     }
   });
 }
@@ -208,7 +130,6 @@ function showAlert(box, message, type) {
   box.style.display = 'block';
   box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-
 function hideAlert(box) {
   if (!box) return;
   box.style.display = 'none';

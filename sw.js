@@ -1,10 +1,10 @@
 /**
  * MOHAMED KHAMIS — PWA Service Worker
  * Statically caches public app shell.
- * Explicitly ignores /admin, Netlify Functions, and external auth endpoints.
+ * Explicitly ignores /admin and all Firebase backend/auth endpoints.
  */
 
-const CACHE_NAME = 'mk-cache-v3';
+const CACHE_NAME = 'mk-cache-v5';
 const RELATIVE_ASSETS = [
   './',
   './index.html',
@@ -20,6 +20,8 @@ const RELATIVE_ASSETS = [
   './assets/css/responsive.css',
   './assets/css/animations.css',
   './assets/js/config.js',
+  './assets/js/firebase-client.js',
+  './assets/js/protection.js',
   './assets/js/i18n.js',
   './assets/js/theme.js',
   './assets/js/services-data.js',
@@ -64,11 +66,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Security: NEVER cache /admin, Netlify Functions, or non-GET requests
+  // Security: NEVER cache /admin, Firebase backend/auth endpoints, or non-GET requests
   if (
     event.request.method !== 'GET' ||
     url.pathname.includes('/admin') ||
     url.pathname.includes('/.netlify') ||
+    url.hostname.includes('cloudfunctions.net') ||
+    url.hostname.includes('api.imgbb.com') ||
+    url.hostname.includes('run.app') ||
     url.hostname.includes('firebaseio.com') ||
     url.hostname.includes('googleapis.com') ||
     url.hostname.includes('identitytoolkit.googleapis.com')

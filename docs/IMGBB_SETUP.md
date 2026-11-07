@@ -1,37 +1,5 @@
-# دليل إعداد خدمة استضافة الصور ImgBB
+# ImgBB image uploads
 
-تم تصميم نظام الموقع لاستخدام خدمة **ImgBB** كحل سحابي مخصص ومستقل لتخزين واستضافة الصور (للمشاريع، والخدمات، والصورة الشخصية)، وتجنب استخدام Firebase Storage لتقليل استهلاك الموارد والحفاظ على خفة وسرعة الموقع.
+The ImgBB API key is placed in `assets/js/config.js` as requested. The admin image uploader sends images directly from the browser to ImgBB and receives the hosted image URL.
 
----
-
-## 🔒 مبادئ الأمان المتبعة:
-1. **لا يتم وضع مفتاح ImgBB داخل الواجهة أو ملفات JavaScript العامة أو مستودع GitHub.**
-2. تتم كافة عمليات رفع الصور من خلال وظيفة Netlify Function الخلفية الآمنة:
-   `netlify/functions/upload-image.mjs`
-3. يقوم الخادم بقراءة المفتاح من متغير البيئة `IMGBB_API_KEY` والتحقق من حجم ونوع الصورة (JPEG, PNG, WebP حتى 10MB) قبل إرسالها إلى ImgBB.
-4. يعود الرابط المباشر الآمن للصورة لحفظه في Firestore وعرضه للزوار.
-
----
-
-## 🌐 عند استضافة الواجهة على GitHub Pages
-يمكن إبقاء ملفات الموقع على GitHub Pages، لكن GitHub Pages لا يشغّل Netlify Functions.
-ملف `admin/assets/js/admin-upload.js` يستخدم الآن عنوان وظيفة الرفع المركزي الموجود في `assets/js/config.js`،
-والذي يوجّه الطلبات إلى موقع Netlify الخلفي. يجب أن تكون وظيفة `upload-image` منشورة على Netlify وأن يكون
-متغير `IMGBB_API_KEY` مضبوطاً هناك. لا تضع مفتاح ImgBB داخل ملفات GitHub العامة.
-
-## 🛠️ خطوات الحصول على المفتاح:
-1. انتقل إلى الرابط الرسمي: [https://api.imgbb.com/](https://api.imgbb.com/).
-2. سجّل الدخول بحسابك في ImgBB.
-3. اضغط على **Get API Key** أو استخرج المفتاح من لوحة حسابك.
-4. انسخ المفتاح.
-5. توجّه إلى لوحة تحكم موقعك على Netlify:
-   `Site configuration` -> `Environment variables` -> أنشئ متغير باسم `IMGBB_API_KEY` وألصق المفتاح كقيمة له.
-
----
-
-## 🔄 كيفية تغيير الصورة الشخصية من لوحة الإدارة:
-1. افتح لوحة التحكم على المسار: `/admin`.
-2. سجّل الدخول بحساب المدير.
-3. انتقل إلى تبويب **الملف الشخصي والصورة**.
-4. اختر الصورة الجديدة من جهازك؛ ستظهر لك معاينة فورية قبل الرفع.
-5. اضغط على **رفع وحفظ الصورة** ليتم رفعها إلى ImgBB وتحديث الرابط في إعدادات الموقع تلقائياً.
+Important: because the key is in public JavaScript, visitors can inspect and reuse it. Monitor the ImgBB account usage and rotate the key if needed.

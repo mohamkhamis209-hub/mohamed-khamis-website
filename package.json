@@ -1,7 +1,7 @@
 {
   "name": "mohamed-khamis-website",
-  "version": "1.0.0",
-  "description": "Mohamed Khamis — Premium Personal Brand & Technology Business Digital Platform",
+  "version": "1.2.0",
+  "description": "GitHub Pages portfolio with direct Firebase Firestore/Auth and ImgBB uploads",
   "type": "module",
   "main": "index.html",
   "scripts": {
@@ -10,18 +10,12 @@
   },
   "keywords": [
     "mohamed-khamis",
-    "technology",
-    "innovation",
-    "software-architecture",
-    "full-stack",
-    "ai",
-    "rust"
+    "firebase",
+    "github-pages",
+    "portfolio"
   ],
   "author": "Mohamed Khamis <mohamkhamis209@gmail.com>",
   "license": "UNLICENSED",
-  "dependencies": {
-    "firebase-admin": "^13.2.0"
-  },
   "devDependencies": {
     "serve": "^14.2.4"
   }

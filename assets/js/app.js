@@ -1,3 +1,4 @@
+import './protection.js';
 /**
  * MOHAMED KHAMIS — Main Client-Side Controller
  * Minimal Luxury Architecture, Bilingual RTL/LTR, Interactive Modals

@@ -1,13 +1,15 @@
+import '../../assets/js/protection.js';
 /**
  * MOHAMED KHAMIS — Executive Admin Dashboard Application
- * State Management, CRUD Operations, Firestore & Serverless Relays
+ * State Management, Firebase Cloud Functions API & Firestore-backed dashboard
  */
 
 import { adminAuth } from './admin-auth.js';
 import { AdminImageUploader } from './admin-upload.js';
 import { INITIAL_SERVICES } from '../../assets/js/services-data.js';
 import { INITIAL_PROJECTS } from '../../assets/js/projects-data.js';
-import { APP_CONFIG } from '../../assets/js/config.js';
+import { db } from '../../assets/js/firebase-client.js';
+import { collection, doc, getDocs, query, orderBy, limit, where, updateDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 class AdminDashboard {
   constructor() {
@@ -121,39 +123,141 @@ class AdminDashboard {
   }
 
   async loadDashboardData() {
-    await this.fetchStatsFromApi();
+    await Promise.all([this.fetchStatsFromApi(), this.fetchAdminData()]);
     this.renderRequestsTable();
+    this.renderMessagesTable();
     this.renderProjectsAdmin();
     this.renderServicesAdmin();
     this.setupProfileAndSettingsForms();
   }
 
+  async callAdminApi(payload) {
+    if (!adminAuth.currentUser) throw new Error('انتهت جلسة الدخول. يرجى تسجيل الدخول مرة أخرى.');
+    const profile = adminAuth.adminProfile || {};
+    const allowed = permission => profile.isSuperAdmin || profile.permissions?.[permission] === true;
+    const action = payload.action;
+
+    if (action === 'get-dashboard-data') {
+      const [requestsSnap, messagesSnap] = await Promise.all([
+        allowed('manageRequests') ? getDocs(query(collection(db, 'requests'), orderBy('createdAt', 'desc'), limit(200))) : Promise.resolve(null),
+        allowed('manageMessages') ? getDocs(query(collection(db, 'messages'), orderBy('createdAt', 'desc'), limit(200))) : Promise.resolve(null)
+      ]);
+      return {
+        success: true,
+        requests: requestsSnap ? requestsSnap.docs.map(item => ({ id: item.id, ...item.data() })) : [],
+        messages: messagesSnap ? messagesSnap.docs.map(item => ({ id: item.id, ...item.data() })) : []
+      };
+    }
+
+    if (action === 'get-dashboard-stats') {
+      if (!allowed('viewStats')) throw new Error('ليست لديك صلاحية عرض الإحصائيات.');
+      const [requestsSnap, messagesSnap, projectsSnap, servicesSnap] = await Promise.all([
+        allowed('manageRequests') ? getDocs(collection(db, 'requests')) : Promise.resolve({ docs: [] }),
+        allowed('manageMessages') ? getDocs(collection(db, 'messages')) : Promise.resolve({ docs: [] }),
+        getDocs(query(collection(db, 'projects'), where('published', '==', true))),
+        getDocs(query(collection(db, 'services'), where('published', '==', true)))
+      ]);
+      const requests = requestsSnap.docs.map(item => item.data());
+      const messages = messagesSnap.docs.map(item => item.data());
+      return { success: true, stats: {
+        totalRequests: requests.length,
+        newRequests: requests.filter(item => item.status === 'new').length,
+        reviewRequests: requests.filter(item => item.status === 'under_review').length,
+        totalMessages: messages.length,
+        unreadMessages: messages.filter(item => !item.read && !item.archived).length,
+        publishedProjects: projectsSnap.size,
+        publishedServices: servicesSnap.size
+      }};
+    }
+
+    if (action === 'update-request-status') {
+      if (!allowed('manageRequests')) throw new Error('ليست لديك صلاحية إدارة الطلبات.');
+      const valid = ['new', 'under_review', 'contacting', 'in_progress', 'completed', 'rejected', 'archived'];
+      if (!valid.includes(payload.status)) throw new Error('حالة الطلب غير صحيحة.');
+      await updateDoc(doc(db, 'requests', payload.trackingId), { status: payload.status, updatedAt: new Date().toISOString() });
+      return { success: true };
+    }
+
+    if (action === 'update-message') {
+      if (!allowed('manageMessages')) throw new Error('ليست لديك صلاحية إدارة الرسائل.');
+      await updateDoc(doc(db, 'messages', payload.messageId), { read: Boolean(payload.read), updatedAt: new Date().toISOString() });
+      return { success: true };
+    }
+
+    if (action === 'update-site-settings') {
+      if (!allowed('manageSettings')) throw new Error('ليست لديك صلاحية تعديل الإعدادات.');
+      const safe = Object.fromEntries(Object.entries(payload.settings || {}).filter(([key]) => ['siteName', 'tagline', 'contactEmail', 'workPhone', 'workWhatsapp', 'maintenanceMode'].includes(key)));
+      await setDoc(doc(db, 'settings', 'public'), { ...safe, updatedAt: new Date().toISOString(), updatedAtServer: serverTimestamp() }, { merge: true });
+      return { success: true };
+    }
+
+    throw new Error('العملية المطلوبة غير مدعومة.');
+  }
+
+  async fetchAdminData() {
+    try {
+      const result = await this.callAdminApi({ action: 'get-dashboard-data' });
+      this.requests = Array.isArray(result.requests) ? result.requests : [];
+      this.messages = Array.isArray(result.messages) ? result.messages : [];
+    } catch (error) {
+      console.error('Admin data loading error:', error);
+      this.adminDataError = error.message;
+      this.requests = [];
+      this.messages = [];
+    }
+  }
+
+  escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+  }
+
+  renderMessagesTable() {
+    const tbody = document.getElementById('messages-table-body');
+    if (!tbody) return;
+    if (!this.messages.length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--admin-text-muted);">لا توجد رسائل واردة حالياً.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = this.messages.map(msg => `
+      <tr>
+        <td><strong>${this.escapeHtml(msg.name)}</strong>${msg.read ? '' : ' <span class="status-pill status-new">جديدة</span>'}</td>
+        <td>${this.escapeHtml(msg.email)}</td>
+        <td>${this.escapeHtml(msg.subject)}</td>
+        <td>${this.escapeHtml(new Date(msg.createdAt || Date.now()).toLocaleDateString('ar-EG'))}</td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn-admin btn-admin-secondary btn-sm message-view-btn" data-id="${this.escapeHtml(msg.id)}">عرض</button>
+          <button class="btn-admin btn-admin-secondary btn-sm message-read-btn" data-id="${this.escapeHtml(msg.id)}" data-read="${!msg.read}">${msg.read ? 'غير مقروءة' : 'تمت القراءة'}</button>
+        </td>
+      </tr>
+      <tr id="message-detail-${this.escapeHtml(msg.id)}" style="display:none;"><td colspan="5" style="white-space:pre-wrap;line-height:1.8;">${this.escapeHtml(msg.message)}</td></tr>
+    `).join('');
+    tbody.querySelectorAll('.message-view-btn').forEach(btn => btn.addEventListener('click', () => {
+      const row = document.getElementById(`message-detail-${btn.dataset.id}`);
+      if (row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }));
+    tbody.querySelectorAll('.message-read-btn').forEach(btn => btn.addEventListener('click', async () => {
+      try {
+        await this.callAdminApi({ action: 'update-message', messageId: btn.dataset.id, read: btn.dataset.read === 'true' });
+        await this.fetchAdminData();
+        this.renderMessagesTable();
+        await this.fetchStatsFromApi();
+      } catch (error) { alert(error.message); }
+    }));
+  }
+
   async fetchStatsFromApi() {
     try {
-      const token = await adminAuth.getIdToken();
-      if (!token) return;
-
-      const response = await fetch(APP_CONFIG.endpoints.adminApi, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ action: 'get-dashboard-stats' })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.stats) {
-          const stats = result.stats;
-          document.getElementById('kpi-total-requests').textContent = stats.totalRequests;
-          document.getElementById('kpi-new-requests').textContent = stats.newRequests;
-          document.getElementById('kpi-unread-messages').textContent = stats.unreadMessages;
-          document.getElementById('kpi-published-projects').textContent = stats.publishedProjects;
-        }
-      }
+      const result = await this.callAdminApi({ action: 'get-dashboard-stats' });
+      const stats = result.stats || {};
+      const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value ?? 0; };
+      setText('kpi-total-requests', stats.totalRequests);
+      setText('kpi-new-requests', stats.newRequests);
+      setText('kpi-unread-messages', stats.unreadMessages);
+      setText('kpi-published-projects', stats.publishedProjects);
     } catch (e) {
-      console.log('Stats fetch fallback to local indicators');
+      console.error('Stats loading error:', e);
     }
   }
 
@@ -162,31 +266,35 @@ class AdminDashboard {
     if (!tbody) return;
 
     if (this.requests.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="7" style="text-align: center; color: var(--admin-text-muted); padding: 30px;">
-            لا توجد طلبات عملاء مسجلة حالياً في النظام.
-          </td>
-        </tr>
-      `;
+      const message = this.adminDataError ? `تعذر تحميل الطلبات: ${this.escapeHtml(this.adminDataError)}` : 'لا توجد طلبات عملاء مسجلة حالياً في النظام.';
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--admin-text-muted);padding:30px;">${message}</td></tr>`;
       return;
     }
 
     tbody.innerHTML = this.requests.map(req => `
       <tr>
-        <td style="font-family: 'Inter', monospace; font-weight: 700; color: var(--admin-cyan);">${req.trackingId}</td>
-        <td><strong>${req.clientName}</strong></td>
-        <td>${req.email}</td>
-        <td>${req.projectType}</td>
+        <td style="font-family: 'Inter', monospace; font-weight: 700; color: var(--admin-cyan);">${this.escapeHtml(req.trackingId)}</td>
+        <td><strong>${this.escapeHtml(req.clientName)}</strong></td>
+        <td>${this.escapeHtml(req.email)}</td>
+        <td>${this.escapeHtml(req.projectType)}</td>
         <td><span class="status-pill status-${req.status}">${this.formatStatus(req.status)}</span></td>
         <td>${new Date(req.createdAt).toLocaleDateString('ar-EG')}</td>
         <td>
-          <button class="btn-admin btn-admin-secondary btn-sm view-req-btn" data-id="${req.trackingId}">
-            عرض وتحديث
-          </button>
+          <select class="admin-input request-status-select" data-id="${this.escapeHtml(req.trackingId)}" style="min-width:130px;padding:6px;">
+            ${['new','under_review','contacting','in_progress','completed','rejected','archived'].map(status => `<option value="${status}" ${req.status === status ? 'selected' : ''}>${this.formatStatus(status)}</option>`).join('')}
+          </select>
         </td>
       </tr>
     `).join('');
+    tbody.querySelectorAll('.request-status-select').forEach(select => select.addEventListener('change', async () => {
+      try {
+        await this.callAdminApi({ action: 'update-request-status', trackingId: select.dataset.id, status: select.value });
+        const request = this.requests.find(item => item.trackingId === select.dataset.id);
+        if (request) request.status = select.value;
+        this.renderRequestsTable();
+        await this.fetchStatsFromApi();
+      } catch (error) { alert(error.message); }
+    }));
   }
 
   renderProjectsAdmin() {
@@ -286,30 +394,14 @@ class AdminDashboard {
         const workWhatsapp = settingsForm.querySelector('[name="workWhatsapp"]')?.value;
         const maintenanceMode = settingsForm.querySelector('[name="maintenanceMode"]')?.checked;
 
-        const token = await adminAuth.getIdToken();
-        if (!token) return;
-
         try {
-          const response = await fetch(APP_CONFIG.endpoints.adminApi, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              action: 'update-site-settings',
-              settings: { siteName, tagline, contactEmail, workPhone, workWhatsapp, maintenanceMode }
-            })
+          await this.callAdminApi({
+            action: 'update-site-settings',
+            settings: { siteName, tagline, contactEmail, workPhone, workWhatsapp, maintenanceMode }
           });
-
-          const resJson = await response.json();
-          if (response.ok && resJson.success) {
-            alert('تم حفظ إعدادات الموقع بنجاح في قاعدة البيانات.');
-          } else {
-            alert(resJson.error || 'فشل حفظ الإعدادات.');
-          }
+          alert('تم حفظ إعدادات الموقع بنجاح في Firebase.');
         } catch (err) {
-          alert('خطأ أثناء الاتصال بالخادم.');
+          alert(err.message || 'تعذر حفظ الإعدادات.');
         }
       });
     }

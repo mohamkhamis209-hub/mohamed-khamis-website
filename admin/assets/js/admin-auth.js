@@ -1,73 +1,51 @@
-/**
- * MOHAMED KHAMIS — Admin Authentication Module
- * Firebase Auth, Role Verification & Session Management
- */
-
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  onAuthStateChanged, 
-  signOut 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { 
-  getFirestore, 
-  doc, 
-  getDoc 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+/** Firebase Authentication and administrator authorization. */
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { auth, db } from '../../assets/js/firebase-client.js';
 import { APP_CONFIG } from '../../assets/js/config.js';
 
-export const SUPER_ADMIN_UID = '6kUrmstc69T4AnwhoUJ4ZrFbRez2';
+export const SUPER_ADMIN_UID = APP_CONFIG.brand.superAdminUid;
 
 class AdminAuthManager {
   constructor() {
-    this.app = initializeApp(APP_CONFIG.firebase);
-    this.auth = getAuth(this.app);
-    this.db = getFirestore(this.app);
+    this.auth = auth;
+    this.db = db;
     this.currentUser = null;
     this.adminProfile = null;
     this.listeners = [];
   }
-
   init() {
-    onAuthStateChanged(this.auth, async (user) => {
-      if (user) {
-        try {
-          const isAuthorized = await this.verifyAdminPrivileges(user.uid);
-          if (isAuthorized) {
-            this.currentUser = user;
-            this.notify(true, this.adminProfile);
-          } else {
-            await this.logout();
-            this.notify(false, null, 'الحساب غير مصرح له بالدخول كمدير أو تم تعطيله.');
-          }
-        } catch (err) {
-          console.error('Admin privilege check error:', err);
-          await this.logout();
-          this.notify(false, null, 'حدث خطأ أثناء التحقق من صلاحيات المدير.');
-        }
-      } else {
+    onAuthStateChanged(this.auth, async user => {
+      if (!user) {
         this.currentUser = null;
         this.adminProfile = null;
         this.notify(false, null);
+        return;
+      }
+      try {
+        const allowed = await this.verifyAdminPrivileges(user.uid);
+        if (allowed) {
+          this.currentUser = user;
+          this.notify(true, this.adminProfile);
+        } else {
+          await this.logout();
+          this.notify(false, null, 'الحساب غير مصرح له بالدخول كمدير أو تم تعطيله.');
+        }
+      } catch (error) {
+        console.error('Admin privilege check error:', error);
+        await this.logout();
+        this.notify(false, null, 'حدث خطأ أثناء التحقق من صلاحيات المدير.');
       }
     });
   }
-
   async verifyAdminPrivileges(uid) {
-    // 1. Check if UID matches hardcoded Super Admin UID
-    const isSuperAdminUid = uid === APP_CONFIG.brand.superAdminUid;
-
-    // 2. Fetch record from admins collection in Firestore
-    const adminRef = doc(this.db, 'admins', uid);
-    const snap = await getDoc(adminRef);
-
+    const isSuperAdminUid = uid === SUPER_ADMIN_UID;
+    const snap = await getDoc(doc(this.db, 'admins', uid));
     if (snap.exists()) {
       const data = snap.data();
-      if (data.active === true) {
+      if (data.active === true || (isSuperAdminUid && data.role === 'super_admin')) {
         this.adminProfile = {
-          uid,
-          name: data.name || 'المدير',
+          uid, name: data.name || (isSuperAdminUid ? 'محمد خميس' : 'المدير'),
           role: data.role || (isSuperAdminUid ? 'super_admin' : 'admin'),
           isSuperAdmin: isSuperAdminUid || data.role === 'super_admin',
           permissions: data.permissions || {}
@@ -75,51 +53,18 @@ class AdminAuthManager {
         return true;
       }
     } else if (isSuperAdminUid) {
-      // Super admin initial profile fallback
       this.adminProfile = {
-        uid,
-        name: 'محمد خميس',
-        role: 'super_admin',
-        isSuperAdmin: true,
-        permissions: {
-          manageProjects: true,
-          manageServices: true,
-          manageRequests: true,
-          manageMessages: true,
-          manageTestimonials: true,
-          manageFaqs: true,
-          manageSettings: true,
-          viewStats: true
-        }
+        uid, name: 'محمد خميس', role: 'super_admin', isSuperAdmin: true,
+        permissions: { manageProjects: true, manageServices: true, manageRequests: true, manageMessages: true, manageTestimonials: true, manageFaqs: true, manageSettings: true, viewStats: true }
       };
       return true;
     }
-
     return false;
   }
-
-  async login(email, password) {
-    return await signInWithEmailAndPassword(this.auth, email, password);
-  }
-
-  async logout() {
-    await signOut(this.auth);
-    this.currentUser = null;
-    this.adminProfile = null;
-  }
-
-  async getIdToken() {
-    if (!this.currentUser) return null;
-    return await this.currentUser.getIdToken();
-  }
-
-  onAuthChanged(cb) {
-    this.listeners.push(cb);
-  }
-
-  notify(isAuthenticated, profile, errorMsg = '') {
-    this.listeners.forEach(cb => cb(isAuthenticated, profile, errorMsg));
-  }
+  login(email, password) { return signInWithEmailAndPassword(this.auth, email, password); }
+  async logout() { await signOut(this.auth); this.currentUser = null; this.adminProfile = null; }
+  getIdToken() { return this.currentUser?.getIdToken() || Promise.resolve(null); }
+  onAuthChanged(callback) { this.listeners.push(callback); }
+  notify(isAuthenticated, profile, errorMsg = '') { this.listeners.forEach(callback => callback(isAuthenticated, profile, errorMsg)); }
 }
-
 export const adminAuth = new AdminAuthManager();

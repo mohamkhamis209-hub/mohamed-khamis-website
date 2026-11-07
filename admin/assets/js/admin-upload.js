@@ -1,59 +1,28 @@
-/**
- * MOHAMED KHAMIS — Admin ImgBB Image Uploader
- * Manages client previews, size validations and server-side relay
- */
-
+/** Direct ImgBB upload from the admin browser (API key is public by request). */
 import { APP_CONFIG } from '../../assets/js/config.js';
 
 export class AdminImageUploader {
-  constructor() {
-    // GitHub Pages serves the frontend, while the secure ImgBB proxy runs on Netlify.
-    this.uploadEndpoint = APP_CONFIG.endpoints.uploadImage;
-  }
-
-  /**
-   * Convert file to base64 with format & size validation
-   */
-  async fileToBase64(file, maxSizeMB = 10) {
+  async fileToBase64(file, maxSizeMB = 7) {
     return new Promise((resolve, reject) => {
-      if (!file) return reject(new Error('No file selected'));
-
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-      if (!allowedTypes.includes(file.type.toLowerCase())) {
-        return reject(new Error('صيغة الصورة غير مدعومة. الصيغ المسموحة: JPEG, PNG, WEBP.'));
-      }
-
-      if (file.size > maxSizeMB * 1024 * 1024) {
-        return reject(new Error(`حجم الصورة يتجاوز الحد الأقصى المسموح (${maxSizeMB} ميجابايت).`));
-      }
-
+      if (!file) return reject(new Error('لم يتم اختيار صورة.'));
+      const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+      if (!allowed.includes(file.type.toLowerCase())) return reject(new Error('صيغة الصورة غير مدعومة. الصيغ المسموحة: JPEG, PNG, WEBP.'));
+      if (file.size > maxSizeMB * 1024 * 1024) return reject(new Error(`حجم الصورة يتجاوز الحد الأقصى (${maxSizeMB} ميجابايت).`));
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
-      reader.onerror = (err) => reject(err);
+      reader.onerror = () => reject(new Error('تعذر قراءة الصورة.'));
       reader.readAsDataURL(file);
     });
   }
 
-  /**
-   * Upload image to server proxy function
-   */
-  async uploadImage(base64Data, filename = 'upload') {
-    const response = await fetch(this.uploadEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        image: base64Data,
-        name: filename
-      })
-    });
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      const errMsg = result.errorAr || result.error || 'فشل رفع الصورة.';
-      throw new Error(errMsg);
-    }
-
-    return result.url;
+  async uploadImage(base64Data, filename = 'mohamed-khamis-upload') {
+    if (!APP_CONFIG.imgbb.apiKey) throw new Error('مفتاح ImgBB غير موجود في config.js.');
+    const form = new FormData();
+    form.append('image', String(base64Data).split(',').pop());
+    form.append('name', filename);
+    const response = await fetch(`${APP_CONFIG.imgbb.uploadUrl}?key=${encodeURIComponent(APP_CONFIG.imgbb.apiKey)}`, { method: 'POST', body: form });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.success) throw new Error(result?.error?.message || 'فشل رفع الصورة إلى ImgBB.');
+    return result.data.display_url || result.data.url;
   }
 }
