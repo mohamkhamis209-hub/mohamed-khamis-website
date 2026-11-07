@@ -13,6 +13,12 @@
 
 ---
 
+## 🌐 عند استضافة الواجهة على GitHub Pages
+يمكن إبقاء ملفات الموقع على GitHub Pages، لكن GitHub Pages لا يشغّل Netlify Functions.
+ملف `admin/assets/js/admin-upload.js` يستخدم الآن عنوان وظيفة الرفع المركزي الموجود في `assets/js/config.js`،
+والذي يوجّه الطلبات إلى موقع Netlify الخلفي. يجب أن تكون وظيفة `upload-image` منشورة على Netlify وأن يكون
+متغير `IMGBB_API_KEY` مضبوطاً هناك. لا تضع مفتاح ImgBB داخل ملفات GitHub العامة.
+
 ## 🛠️ خطوات الحصول على المفتاح:
 1. انتقل إلى الرابط الرسمي: [https://api.imgbb.com/](https://api.imgbb.com/).
 2. سجّل الدخول بحسابك في ImgBB.

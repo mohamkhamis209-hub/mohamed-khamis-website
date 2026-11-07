@@ -6,7 +6,8 @@
 - **Auth Domain:** `mohamed-khamis.firebaseapp.com`
 - **Storage Bucket:** `mohamed-khamis.firebasestorage.app`
 - **Messaging Sender ID:** `534587371999`
-- **Firebase Web App ID:** `1:534587371999:web`
+- **Firebase Web App ID:** `1:534587371999:web:ae906a8cd8d377571a546a`
+- **Firebase Web API Key:** configured in `assets/js/config.js` (public web configuration; protect data with Firestore Rules and Auth).
 
 ---
 

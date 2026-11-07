@@ -3,9 +3,12 @@
  * Manages client previews, size validations and server-side relay
  */
 
+import { APP_CONFIG } from '../../assets/js/config.js';
+
 export class AdminImageUploader {
   constructor() {
-    this.uploadEndpoint = '/.netlify/functions/upload-image';
+    // GitHub Pages serves the frontend, while the secure ImgBB proxy runs on Netlify.
+    this.uploadEndpoint = APP_CONFIG.endpoints.uploadImage;
   }
 
   /**

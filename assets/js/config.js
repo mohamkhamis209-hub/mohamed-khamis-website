@@ -26,11 +26,12 @@ export const APP_CONFIG = {
     superAdminUid: '6kUrmstc69T4AnwhoUJ4ZrFbRez2'
   },
   firebase: {
+    apiKey: 'AIzaSyCPw4s-M_a8y_VvPfeMDWCTBFNGBXXzcjE',
     projectId: 'mohamed-khamis',
     authDomain: 'mohamed-khamis.firebaseapp.com',
     storageBucket: 'mohamed-khamis.firebasestorage.app',
     messagingSenderId: '534587371999',
-    appId: '1:534587371999:web'
+    appId: '1:534587371999:web:ae906a8cd8d377571a546a'
   },
   endpoints: {
     submitRequest: `${backendOrigin}/.netlify/functions/submit-request`,
