@@ -1,4 +1,4 @@
-import '../../../assets/js/protection.js';
+import '../../assets/js/protection.js';
 /**
  * MOHAMED KHAMIS — Executive Admin Dashboard Application
  * State Management, Firebase Cloud Functions API & Firestore-backed dashboard
@@ -6,9 +6,9 @@ import '../../../assets/js/protection.js';
 
 import { adminAuth } from './admin-auth.js';
 import { AdminImageUploader } from './admin-upload.js';
-import { INITIAL_SERVICES } from '../../../assets/js/services-data.js';
-import { INITIAL_PROJECTS } from '../../../assets/js/projects-data.js';
-import { db } from '../../../assets/js/firebase-client.js';
+import { INITIAL_SERVICES } from '../../assets/js/services-data.js';
+import { INITIAL_PROJECTS } from '../../assets/js/projects-data.js';
+import { db } from '../../assets/js/firebase-client.js';
 import { collection, doc, getDocs, query, orderBy, limit, where, updateDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 class AdminDashboard {
