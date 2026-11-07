@@ -1,8 +1,8 @@
 /** Firebase Authentication and administrator authorization. */
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-import { auth, db } from '../../assets/js/firebase-client.js';
-import { APP_CONFIG } from '../../assets/js/config.js';
+import { auth, db } from '../../../assets/js/firebase-client.js';
+import { APP_CONFIG } from '../../../assets/js/config.js';
 
 export const SUPER_ADMIN_UID = APP_CONFIG.brand.superAdminUid;
 

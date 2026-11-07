@@ -1,5 +1,5 @@
 /** Direct ImgBB upload from the admin browser (API key is public by request). */
-import { APP_CONFIG } from '../../assets/js/config.js';
+import { APP_CONFIG } from '../../../assets/js/config.js';
 
 export class AdminImageUploader {
   async fileToBase64(file, maxSizeMB = 7) {

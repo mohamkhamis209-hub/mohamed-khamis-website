@@ -25,7 +25,7 @@ test('Firestore permits validated public request creation only', rules.includes(
 test('Firestore permits validated public messages and keeps them private', rules.includes('match /messages/{id}') && rules.includes('allow read: if can(\'manageMessages\')'));
 test('Admin permissions remain enforced in Firestore rules', rules.includes("function can(permission)") && rules.includes("allow write: if can('manageSettings')"));
 test('No Netlify or Firebase Functions dependency remains', !read('firebase.json').includes('functions') && !fs.existsSync(path.join(root, 'functions')) && !read('assets/js/config.js').includes('cloudfunctions.net'));
-test('Developer-tools deterrent is loaded on public and admin pages', read('assets/js/app.js').includes("import './protection.js'") && read('admin/assets/js/admin-app.js').includes("import '../../assets/js/protection.js'"));
+test('Developer-tools deterrent is loaded on public and admin pages', read('assets/js/app.js').includes("import './protection.js'") && read('admin/assets/js/admin-app.js').includes("import '../../../assets/js/protection.js'"));
 test('PWA cache version refreshed and Firebase/ImgBB requests bypass cache', read('sw.js').includes('mk-cache-v5') && read('sw.js').includes('api.imgbb.com') && read('sw.js').includes('googleapis.com'));
 const passed = checks.filter(item => item.ok).length;
 console.log(`\nSUMMARY: ${passed}/${checks.length} checks passed.`);
